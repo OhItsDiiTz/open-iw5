@@ -130,12 +130,12 @@ private:
 
 			if (params.size() > 4)
 			{
-				angles[1] = std::strtof(params.get(4), nullptr); // Yaw
+				angles[game::native::YAW] = std::strtof(params.get(4), nullptr); // Yaw
 			}
 
 			if (params.size() == 6)
 			{
-				angles[0] = std::strtof(params.get(5), nullptr); // Pitch
+				angles[game::native::PITCH] = std::strtof(params.get(5), nullptr); // Pitch
 			}
 
 			game::native::TeleportPlayer(ent, origin, angles);

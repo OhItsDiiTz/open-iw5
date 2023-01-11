@@ -282,6 +282,11 @@ namespace game
 		constexpr auto MAX_QPATH = 64;
 		constexpr auto MAX_OSPATH = 256;
 
+		// Angle indexes
+		constexpr auto PITCH = 0; // up / down
+		constexpr auto YAW = 1; // left / right
+		constexpr auto ROLL = 2; // fall over
+
 		// From Quake III, to match game's assembly
 		template <typename T, typename R>
 		constexpr auto VectorScale(T v, R s, T out) { out[0] = v[0] * s; out[1] = v[1] * s; out[2] = v[2] * s; }

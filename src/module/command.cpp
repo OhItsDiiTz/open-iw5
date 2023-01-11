@@ -85,7 +85,7 @@ std::string command::params_sv::join(const int index) const
 
 void command::add_raw(const char* name, void (*callback)())
 {
-	game::native::Cmd_AddCommand(name, callback, allocator.allocate<game::native::cmd_function_t>());
+	game::native::Cmd_AddCommandInternal(name, callback, allocator.allocate<game::native::cmd_function_s>());
 }
 
 void command::add(const char* name, const std::function<void(const params&)>& callback)

@@ -64,3 +64,9 @@ private:
 
 	static void add_sp_commands();
 };
+
+#define Cmd_AddCommand(cmd_name, function) \
+{ \
+	static game::native::cmd_function_s function##_VAR; \
+	game::native::Cmd_AddCommandInternal(cmd_name, function, &function##_VAR); \
+}

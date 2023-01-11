@@ -6,7 +6,7 @@ namespace game
 {
 	namespace native
 	{
-		Cmd_AddCommand_t Cmd_AddCommand;
+		Cmd_AddCommandInternal_t Cmd_AddCommandInternal;
 		Cmd_RemoveCommand_t Cmd_RemoveCommand;
 
 		Cbuf_AddText_t Cbuf_AddText;
@@ -63,6 +63,8 @@ namespace game
 		Sys_Error_t Sys_Error;
 		Sys_Milliseconds_t Sys_Milliseconds;
 		Sys_Sleep_t Sys_Sleep;
+		Sys_FreeFileList_t Sys_FreeFileList;
+		Sys_MessageBox_t Sys_MessageBox;
 
 		PMem_AllocFromSource_NoDebug_t PMem_AllocFromSource_NoDebug;
 
@@ -86,6 +88,7 @@ namespace game
 		XUIDToString_t XUIDToString;
 
 		SEH_LocalizeTextMessage_t SEH_LocalizeTextMessage;
+		SEH_GetLanguageName_t SEH_GetLanguageName;
 
 		CM_TransformedCapsuleTrace_t CM_TransformedCapsuleTrace;
 
@@ -103,10 +106,16 @@ namespace game
 
 		FS_Printf_t FS_Printf;
 		FS_ReadFile_t FS_ReadFile;
+		FS_CreatePath_t FS_CreatePath;
+		FS_HandleForFile_t FS_HandleForFile;
+		FS_FCloseFile_t FS_FCloseFile;
+		FS_ListFilteredFiles_t FS_ListFilteredFiles;
 
 		player_die_t player_die;
 
 		LargeLocalResetToMark_t LargeLocalResetToMark;
+
+		Win_LocalizeRef_t Win_LocalizeRef;
 
 		decltype(longjmp)* _longjmp;
 
@@ -143,6 +152,9 @@ namespace game
 		searchpath_s** fs_searchpaths;
 		char* fs_gamedir;
 		fileHandleData_t* fsh;
+		int* fs_numServerIwds;
+		int* fs_serverIwds;
+		int* fs_iwdFileCount;
 		int* com_fileAccessed;
 
 		// DS does not have MJPEG thread
@@ -184,6 +196,23 @@ namespace game
 			gentity_s* g_entities;
 
 			gclient_s* g_clients;
+		}
+
+		int Cmd_Argc()
+		{
+			assert(cmd_args->nesting < CMD_MAX_NESTING);
+			return cmd_args->argc[cmd_args->nesting];
+		}
+
+		const char* Cmd_Argv(int argIndex)
+		{
+			assert(cmd_args->nesting < CMD_MAX_NESTING);
+			assert(argIndex >= 0);
+			if (argIndex < cmd_args->argc[cmd_args->nesting])
+			{
+				return cmd_args->argv[cmd_args->nesting][argIndex];
+			}
+			return "";
 		}
 
 		void AddRefToValue(VariableValue* value)
@@ -524,19 +553,21 @@ namespace game
 			InterlockedDecrement(&critSect->readCount);
 		}
 
-		void FS_FCloseFile(int h)
+		void Sys_OutOfMemErrorInternal(const char* filename, int line)
 		{
-			reinterpret_cast<void(*)(int)>(SELECT_VALUE(0x415160, 0x5AF170))(h);
+			Sys_EnterCriticalSection(CRITSECT_FATAL_ERROR);
+
+			printf("Out of memory: filename \'%s\', line %d\n", filename, line);
+			const auto* title = Win_LocalizeRef("WIN_OUT_OF_MEM_TITLE");
+			const auto* body = Win_LocalizeRef("WIN_OUT_OF_MEM_BODY");
+
+			Sys_MessageBox(body, title, MB_ICONERROR, 0);
+			std::exit(-1);
 		}
 
 		bool FS_Initialized()
 		{
 			return (*fs_searchpaths != nullptr);
-		}
-
-		int FS_HandleForFile(FsThread thread)
-		{
-			return reinterpret_cast<int(*)(FsThread)>(SELECT_VALUE(0x46B1C0, 0x5AEE50))(thread);
 		}
 
 		int fs_fopen_file_read_for_thread_singleplayer(const char* filename, int* file, FsThread thread)
@@ -593,11 +624,6 @@ namespace game
 			return fs_fopen_file_read_for_thread_multiplayer(filename, file, thread);
 		}
 
-		int FS_CreatePath(char* OSPath)
-		{
-			return reinterpret_cast<int(*)(char*)>(SELECT_VALUE(0x4F5AB0, 0x5AF060))(OSPath);
-		}
-
 		void FS_CheckFileSystemStarted()
 		{
 			assert(*fs_searchpaths);
@@ -634,6 +660,34 @@ namespace game
 			Sys_UnlockRead(db_hashCritSect);
 			return asset_entry != nullptr;
 		}
+
+		int SEH_GetCurrentLanguage()
+		{
+			return (*dvars::loc_language)->current.integer;
+		}
+
+		void* Z_Malloc(std::size_t size)
+		{
+			void* buf = std::malloc(size);
+			if (buf)
+			{
+				std::memset(buf, 0, size);
+				return buf;
+			}
+
+			printf("Failed to Z_Malloc %u bytes\n", size);
+			Sys_OutOfMemError();
+		}
+
+		bool I_islower(int c)
+		{
+			return c >= 'a' && c <= 'z';
+		}
+
+		bool I_isupper(int c)
+		{
+			return c >= 'A' && c <= 'Z';
+		}
 	}
 
 	launcher::mode mode = launcher::mode::none;
@@ -664,7 +718,7 @@ namespace game
 
 		dvars::initialize();
 
-		native::Cmd_AddCommand = native::Cmd_AddCommand_t(SELECT_VALUE(0x558820, 0x545DF0));
+		native::Cmd_AddCommandInternal = native::Cmd_AddCommandInternal_t(SELECT_VALUE(0x558820, 0x545DF0));
 		native::Cmd_RemoveCommand = native::Cmd_RemoveCommand_t(SELECT_VALUE(0x443A30, 0x545E20));
 
 		native::Cbuf_AddText = native::Cbuf_AddText_t(SELECT_VALUE(0x457C90, 0x545680));
@@ -722,6 +776,8 @@ namespace game
 		native::Sys_Error = native::Sys_Error_t(SELECT_VALUE(0x490D90, 0x5CC3B0));
 		native::Sys_Milliseconds = native::Sys_Milliseconds_t(SELECT_VALUE(0x4A1610, 0x5CE740));
 		native::Sys_Sleep = native::Sys_Sleep_t(SELECT_VALUE(0x438600, 0x55F460));
+		native::Sys_FreeFileList = native::Sys_FreeFileList_t(SELECT_VALUE(0x486380, 0x5C4F90));
+		native::Sys_MessageBox = native::Sys_MessageBox_t(SELECT_VALUE(0x4664D0, 0x5CD180));
 
 		native::PMem_AllocFromSource_NoDebug = native::PMem_AllocFromSource_NoDebug_t(SELECT_VALUE(0x449E50, 0x5C15C0));
 
@@ -753,6 +809,7 @@ namespace game
 		native::XUIDToString = native::XUIDToString_t(SELECT_VALUE(0x4FAA30, 0x55CC20));
 
 		native::SEH_LocalizeTextMessage = native::SEH_LocalizeTextMessage_t(SELECT_VALUE(0x41EA20, 0x57E240));
+		native::SEH_GetLanguageName = native::SEH_GetLanguageName_t(SELECT_VALUE(0x533650, 0x57E5A0));
 
 		native::CM_TransformedCapsuleTrace = native::CM_TransformedCapsuleTrace_t(SELECT_VALUE(0x4F9B80, 0x541340));
 
@@ -770,10 +827,16 @@ namespace game
 
 		native::FS_Printf = native::FS_Printf_t(SELECT_VALUE(0x421E90, 0x5AF7C0));
 		native::FS_ReadFile = native::FS_ReadFile_t(SELECT_VALUE(0x4D8DF0, 0x5B1FB0));
+		native::FS_CreatePath = native::FS_CreatePath_t(SELECT_VALUE(0x4F5AB0, 0x5AF060));
+		native::FS_HandleForFile = native::FS_HandleForFile_t(SELECT_VALUE(0x46B1C0, 0x5AEE50));
+		native::FS_FCloseFile = native::FS_FCloseFile_t(SELECT_VALUE(0x415160, 0x5AF170));
+		native::FS_ListFilteredFiles = native::FS_ListFilteredFiles_t(SELECT_VALUE(0x41D910, 0x5AFF10));
 
 		native::player_die = native::player_die_t(SELECT_VALUE(0x0, 0x503460));
 
 		native::LargeLocalResetToMark = native::LargeLocalResetToMark_t(SELECT_VALUE(0x524350, 0x5B7150));
+
+		native::Win_LocalizeRef = native::Win_LocalizeRef_t(SELECT_VALUE(0x49D7E0, 0x5CBE90));
 
 		native::_longjmp = reinterpret_cast<decltype(longjmp)*>(SELECT_VALUE(0x73AC20, 0x7363BC));
 
@@ -817,9 +880,12 @@ namespace game
 		native::fs_searchpaths = reinterpret_cast<native::searchpath_s**>(SELECT_VALUE(0x1C2FE78, 0x59BA858));
 		native::fs_gamedir = reinterpret_cast<char*>(SELECT_VALUE(0x1C2B220, 0x59A98F8));
 		native::fsh = reinterpret_cast<native::fileHandleData_t*>(SELECT_VALUE(0x1C2B540, 0x59B5F20));
+		native::fs_numServerIwds = reinterpret_cast<int*>(SELECT_VALUE(0x1C2FE84, 0x59BA864));
+		native::fs_serverIwds = reinterpret_cast<int*>(SELECT_VALUE(0x0, 0x59AAB18));
+		native::fs_iwdFileCount = reinterpret_cast<int*>(SELECT_VALUE(0x1C2fE7C, 0x59BA85C));
 		native::com_fileAccessed = reinterpret_cast<int*>(SELECT_VALUE(0x1C2B328, 0x59A9A04));
 
-		native::threadId = reinterpret_cast<unsigned(*)[native::THREAD_CONTEXT_COUNT]>(SELECT_VALUE(0x18576C8, 0x1D6E448));
+		native::threadId = reinterpret_cast<unsigned int(*)[native::THREAD_CONTEXT_COUNT]>(SELECT_VALUE(0x18576C8, 0x1D6E448));
 
 		native::initialized_0 = reinterpret_cast<int*>(SELECT_VALUE(0x1CE1CA0, 0x5AA3058));
 		native::sys_timeBase = reinterpret_cast<int*>(SELECT_VALUE(0x1CE1C98, 0x5AA3050));

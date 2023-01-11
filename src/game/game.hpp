@@ -11,8 +11,8 @@ namespace game
 {
 	namespace native
 	{
-		typedef void (*Cmd_AddCommand_t)(const char* cmdName, void (*function)(), cmd_function_t* allocedCmd);
-		extern Cmd_AddCommand_t Cmd_AddCommand;
+		typedef void (*Cmd_AddCommandInternal_t)(const char* cmdName, void (*function)(), cmd_function_s* allocedCmd);
+		extern Cmd_AddCommandInternal_t Cmd_AddCommandInternal;
 
 		typedef void (*Cmd_RemoveCommand_t)(const char* cmdName);
 		extern Cmd_RemoveCommand_t Cmd_RemoveCommand;
@@ -137,6 +137,12 @@ namespace game
 		typedef void (*Sys_Sleep_t)(int msec);
 		extern Sys_Sleep_t Sys_Sleep;
 
+		typedef void (*Sys_FreeFileList_t)(char** list);
+		extern Sys_FreeFileList_t Sys_FreeFileList;
+
+		typedef int (*Sys_MessageBox_t)(const char* lpText, const char* lpCaption, unsigned int uType, int defaultValue);
+		extern Sys_MessageBox_t Sys_MessageBox;
+
 		typedef void* (*PMem_AllocFromSource_NoDebug_t)(unsigned int size, unsigned int alignment, unsigned int type, int source);
 		extern PMem_AllocFromSource_NoDebug_t PMem_AllocFromSource_NoDebug;
 
@@ -182,6 +188,9 @@ namespace game
 		typedef char* (*SEH_LocalizeTextMessage_t)(const char* pszInputBuffer, const char* pszMessageType, msgLocErrType_t errType);
 		extern SEH_LocalizeTextMessage_t SEH_LocalizeTextMessage;
 
+		typedef const char* (*SEH_GetLanguageName_t)(int iLanguage);
+		extern SEH_GetLanguageName_t SEH_GetLanguageName;
+
 		typedef void (*CM_TransformedCapsuleTrace_t)(trace_t* results, const float* start, const float* end,
 			const Bounds* bounds, const Bounds* capsule, int contents,
 			const float* origin, const float* angles);
@@ -216,11 +225,26 @@ namespace game
 		typedef int (*FS_ReadFile_t)(const char* qpath, char** buffer);
 		extern FS_ReadFile_t FS_ReadFile;
 
+		typedef int (*FS_CreatePath_t)(char* OSPath);
+		extern FS_CreatePath_t FS_CreatePath;
+
+		typedef int (*FS_HandleForFile_t)(FsThread thread);
+		extern FS_HandleForFile_t FS_HandleForFile;
+
+		typedef void (*FS_FCloseFile_t)(int h);
+		extern FS_FCloseFile_t FS_FCloseFile;
+
+		typedef char** (*FS_ListFilteredFiles_t)(searchpath_s* searchPath, const char* path, const char* extension, const char* filter, FsListBehavior_e behavior, int* numfiles, int allocTrackType);
+		extern FS_ListFilteredFiles_t FS_ListFilteredFiles;
+
 		typedef void (*player_die_t)(gentity_s* self, const gentity_s* inflictor, gentity_s* attacker, int damage, int meansOfDeath, const Weapon* iWeapon, bool isAlternate, const float* vDir, const hitLocation_t hitLoc, int psTimeOffset);
 		extern player_die_t player_die;
 
 		typedef void (*LargeLocalResetToMark_t)(int markPos);
 		extern LargeLocalResetToMark_t LargeLocalResetToMark;
+
+		typedef const char* (*Win_LocalizeRef_t)(const char* ref);
+		extern Win_LocalizeRef_t Win_LocalizeRer;
 
 		extern decltype(longjmp)* _longjmp;
 
@@ -261,6 +285,9 @@ namespace game
 		extern searchpath_s** fs_searchpaths;
 		extern char* fs_gamedir;
 		extern fileHandleData_t* fsh;
+		extern int* fs_numServerIwds;
+		extern int* fs_serverIwds;
+		extern int* fs_iwdFileCount;
 		extern int* com_fileAccessed;
 
 		extern unsigned int(*threadId)[THREAD_CONTEXT_COUNT];
@@ -322,6 +349,9 @@ namespace game
 			extern gclient_s* g_clients;
 		}
 
+		int Cmd_Argc();
+		const char* Cmd_Argv(int argIndex);
+
 		void AddRefToValue(VariableValue* value);
 
 		void* MT_Alloc(int numBytes, int type);
@@ -361,16 +391,23 @@ namespace game
 		bool Sys_IsStreamThread();
 		bool Sys_IsRenderThread();
 		bool Sys_IsServerThread();
+		void Sys_LockRead(FastCriticalSection* critSect);
+		void Sys_UnlockRead(FastCriticalSection* critSect);
+		void Sys_OutOfMemErrorInternal(const char* filename, int line);
 
-		void FS_FCloseFile(int h);
 		bool FS_Initialized();
-		int FS_HandleForFile(FsThread thread);
 		int FS_FOpenFileReadForThread(const char* filename, int* file, FsThread thread);
-		int FS_CreatePath(char* OSPath);
 		void FS_CheckFileSystemStarted();
 
 		XAssetEntry* DB_FindXAssetEntry(XAssetType type, const char* name);
 		int DB_XAssetExists(XAssetType type, const char* name);
+
+		int SEH_GetCurrentLanguage();
+
+		void* Z_Malloc(std::size_t size);
+
+		bool I_islower(int c);
+		bool I_isupper(int c);
 	}
 
 	bool is_mp();
@@ -378,3 +415,5 @@ namespace game
 
 	void initialize(launcher::mode mode);
 }
+
+#define Sys_OutOfMemError() game::native::Sys_OutOfMemErrorInternal(__FILE__, __LINE__)

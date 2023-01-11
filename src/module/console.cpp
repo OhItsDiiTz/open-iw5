@@ -133,7 +133,7 @@ std::string console::format(va_list* ap, const char* message)
 	const auto count = vsnprintf_s(buffer, _TRUNCATE, message, *ap);
 
 	if (count < 0) return {};
-	return {buffer, static_cast<size_t>(count)};
+	return {buffer, static_cast<std::size_t>(count)};
 }
 
 REGISTER_MODULE(console)

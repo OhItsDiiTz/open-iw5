@@ -6,5 +6,7 @@ namespace dvars
 
 	extern const game::native::dvar_t** sv_maxclients;
 
+	extern const game::native::dvar_t** loc_language;
+
 	void initialize();
 }

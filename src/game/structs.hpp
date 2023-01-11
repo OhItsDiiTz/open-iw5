@@ -483,9 +483,15 @@ namespace game
 			PMEM_SOURCE_SCRIPT,
 		};
 
-		struct cmd_function_t
+		enum FsListBehavior_e
 		{
-			cmd_function_t* next;
+			FS_LIST_PURE_ONLY,
+			FS_LIST_ALL,
+		};
+
+		struct cmd_function_s
+		{
+			cmd_function_s* next;
 			const char* name;
 			const char* autoCompleteDir;
 			const char* autoCompleteExt;
@@ -1289,6 +1295,7 @@ namespace game
 		enum CriticalSection
 		{
 			CRITSECT_CONSOLE = 0x0,
+			CRITSECT_FATAL_ERROR = 0x12,
 			CRITSECT_CBUF = 0x1F,
 			CRITSECT_COUNT = 0x27,
 		};

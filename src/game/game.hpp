@@ -20,6 +20,9 @@ namespace game
 		typedef void (*Cbuf_AddText_t)(LocalClientNum_t localClientNum, const char* text);
 		extern Cbuf_AddText_t Cbuf_AddText;
 
+		typedef void (*Conbuf_AppendText_t)(const char* message);
+		extern Conbuf_AppendText_t Conbuf_AppendText;
+
 		typedef void (*Com_Error_t)(errorParm_t code, const char* fmt, ...);
 		extern Com_Error_t Com_Error;
 
@@ -35,12 +38,16 @@ namespace game
 		typedef int (*DB_IsXAssetDefault_t)(XAssetType type, const char* name);
 		extern DB_IsXAssetDefault_t DB_IsXAssetDefault;
 
-		typedef const dvar_t* (*Dvar_RegisterBool_t)(const char* dvarName, bool value,
-			unsigned __int16 flags, const char* description);
+		typedef const dvar_t* (*Dvar_RegisterBool_t)(const char* dvarName, bool value, unsigned __int16 flags, const char* description);
 		extern Dvar_RegisterBool_t Dvar_RegisterBool;
 
-		typedef const dvar_t* (*Dvar_RegisterString_t)(const char* dvarName, const char* value,
-			unsigned __int16 flags, const char* description);
+		typedef const dvar_t* (*Dvar_RegisterFloat_t)(const char* dvarName, float value, float min, float max, unsigned __int16 flags, const char* description);
+		extern Dvar_RegisterFloat_t Dvar_RegisterFloat;
+
+		typedef const dvar_t* (*Dvar_RegisterInt_t)(const char* dvarName, int value, int min, int max, unsigned __int16 flags, const char* description);
+		extern Dvar_RegisterInt_t Dvar_RegisterInt;
+
+		typedef const dvar_t* (*Dvar_RegisterString_t)(const char* dvarName, const char* value, unsigned __int16 flags, const char* description);
 		extern Dvar_RegisterString_t Dvar_RegisterString;
 
 		typedef void (*Dvar_SetIntByName_t)(const char* dvarName, int value);
@@ -73,8 +80,14 @@ namespace game
 		typedef void* (*MT_AllocIndex_t)(int numBytes, int type);
 		extern MT_AllocIndex_t MT_AllocIndex;
 
+		typedef unsigned int (*FindVariable_t)(unsigned int parentId, unsigned int name);
+		extern FindVariable_t FindVariable;
+
 		typedef void (*RemoveRefToValue_t)(int type, VariableUnion u);
 		extern RemoveRefToValue_t RemoveRefToValue;
+
+		typedef VariableValue (*GetEntityFieldValue_t)(unsigned int classnum, int entnum, int offset);
+		extern GetEntityFieldValue_t GetEntityFieldValue;
 
 		typedef unsigned int (*SL_GetStringOfSize_t)(const char* str, unsigned int user, unsigned int len, int type);
 		extern SL_GetStringOfSize_t SL_GetStringOfSize;
@@ -306,17 +319,9 @@ namespace game
 
 		void AddRefToValue(VariableValue* value);
 
-		void Conbuf_AppendText(const char* message);
-
-		unsigned int FindVariable(unsigned int parentId, unsigned int name);
-
-		VariableValue GetEntityFieldValue(unsigned int classnum, int entnum, int offset);
-
 		void* MT_Alloc(int numBytes, int type);
 
 		dvar_t* Dvar_FindVar(const char* dvarName);
-		const dvar_t* Dvar_RegisterFloat(const char* dvarName, float value, float min, float max, unsigned __int16 flags, const char* description);
-		const dvar_t* Dvar_RegisterInt(const char* dvarName, int value, int min, int max, unsigned __int16 flags, const char* description);
 
 		const float* Scr_AllocVector(const float* v);
 		void Scr_ClearOutParams();

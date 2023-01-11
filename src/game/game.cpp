@@ -10,6 +10,7 @@ namespace game
 		Cmd_RemoveCommand_t Cmd_RemoveCommand;
 
 		Cbuf_AddText_t Cbuf_AddText;
+		Conbuf_AppendText_t Conbuf_AppendText;
 
 		Com_Error_t Com_Error;
 		Com_Filter_t Com_Filter;
@@ -19,6 +20,8 @@ namespace game
 		DB_IsXAssetDefault_t DB_IsXAssetDefault;
 
 		Dvar_RegisterBool_t Dvar_RegisterBool;
+		Dvar_RegisterFloat_t Dvar_RegisterFloat;
+		Dvar_RegisterInt_t Dvar_RegisterInt;
 		Dvar_RegisterString_t Dvar_RegisterString;
 
 		Dvar_SetIntByName_t Dvar_SetIntByName;
@@ -37,7 +40,9 @@ namespace game
 
 		MT_AllocIndex_t MT_AllocIndex;
 
+		FindVariable_t FindVariable;
 		RemoveRefToValue_t RemoveRefToValue;
+		GetEntityFieldValue_t GetEntityFieldValue;
 
 		SL_GetStringOfSize_t SL_GetStringOfSize;
 
@@ -202,21 +207,6 @@ namespace game
 			}
 		}
 
-		void Conbuf_AppendText(const char* message)
-		{
-			reinterpret_cast<void(*)(const char*)>(SELECT_VALUE(0x4C84E0, 0x5CF610))(message);
-		}
-
-		unsigned int FindVariable(const unsigned int parentId, const unsigned int name)
-		{
-			return reinterpret_cast<unsigned int(*)(unsigned int, unsigned int)>(SELECT_VALUE(0x4C4E70, 0x5651F0))(parentId, name);
-		}
-
-		VariableValue GetEntityFieldValue(const unsigned int classnum, const int entnum, const int offset)
-		{
-			return reinterpret_cast<VariableValue(*)(unsigned int, int, int)>(SELECT_VALUE(0x530E30, 0x56AF20))(classnum, entnum, offset);
-		}
-
 		void* MT_Alloc(const int numBytes, const int type)
 		{
 			return scrMemTreeGlob + 12 * size_t(MT_AllocIndex(numBytes, type));
@@ -225,20 +215,6 @@ namespace game
 		dvar_t* Dvar_FindVar(const char* dvarName)
 		{
 			return reinterpret_cast<dvar_t*(*)(const char*)>(SELECT_VALUE(0x539550, 0x5BDCC0))(dvarName);
-		}
-
-		const dvar_t* Dvar_RegisterFloat(const char* dvarName, float value,
-			float min, float max, unsigned __int16 flags, const char* description)
-		{
-			return reinterpret_cast<const dvar_t*(*)(const char*, float, float, float, unsigned __int16, const char*)> //
-				(SELECT_VALUE(0x4F9CC0, 0x5BEA80))(dvarName, value, min, max, flags, description);
-		}
-
-		const dvar_t* Dvar_RegisterInt(const char* dvarName, int value,
-			int min, int max, unsigned __int16 flags, const char* description)
-		{
-			return reinterpret_cast<const dvar_t*(*)(const char*, int, int, int, unsigned __int16, const char*)> //
-				(SELECT_VALUE(0x48CD40, 0x5BEA40))(dvarName, value, min, max, flags, description);
 		}
 
 		void IncInParam()
@@ -692,6 +668,7 @@ namespace game
 		native::Cmd_RemoveCommand = native::Cmd_RemoveCommand_t(SELECT_VALUE(0x443A30, 0x545E20));
 
 		native::Cbuf_AddText = native::Cbuf_AddText_t(SELECT_VALUE(0x457C90, 0x545680));
+		native::Conbuf_AppendText = native::Conbuf_AppendText_t(SELECT_VALUE(0x4C84E0, 0x5CF610));
 
 		native::Com_Error = native::Com_Error_t(SELECT_VALUE(0x425540, 0x555450));
 		native::Com_Filter = native::Com_Filter_t(SELECT_VALUE(0x44EFF0, 0x5B7C30));
@@ -701,6 +678,8 @@ namespace game
 		native::DB_IsXAssetDefault = native::DB_IsXAssetDefault_t(SELECT_VALUE(0x4868E0, 0x4CA800));
 
 		native::Dvar_RegisterBool = native::Dvar_RegisterBool_t(SELECT_VALUE(0x4914D0, 0x5BE9F0));
+		native::Dvar_RegisterFloat = native::Dvar_RegisterFloat_t(SELECT_VALUE(0x4F9CC0, 0x5BEA80));
+		native::Dvar_RegisterInt = native::Dvar_RegisterInt_t(SELECT_VALUE(0x48CD40, 0x5BEA40));
 		native::Dvar_RegisterString = native::Dvar_RegisterString_t(SELECT_VALUE(0x5197F0, 0x5BEC90));
 
 		native::Dvar_SetIntByName = native::Dvar_SetIntByName_t(SELECT_VALUE(0x5396B0, 0x5BF560));
@@ -719,7 +698,9 @@ namespace game
 
 		native::MT_AllocIndex = native::MT_AllocIndex_t(SELECT_VALUE(0x4B9610, 0x562080));
 
+		native::FindVariable = native::FindVariable_t(SELECT_VALUE(0x4C4E70, 0x5651F0));
 		native::RemoveRefToValue = native::RemoveRefToValue_t(SELECT_VALUE(0x477EA0, 0x565730));
+		native::GetEntityFieldValue = native::GetEntityFieldValue_t(SELECT_VALUE(0x530E30, 0x56AF20));
 
 		native::SL_GetStringOfSize = native::SL_GetStringOfSize_t(SELECT_VALUE(0x4E13F0, 0x564650));
 

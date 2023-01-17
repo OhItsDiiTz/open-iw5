@@ -82,7 +82,8 @@ std::shared_ptr<IWebBrowser2> html_frame::get_web_browser() const
 	if (!this->browser_object_) return {};
 
 	IWebBrowser2* web_browser = nullptr;
-	if (FAILED(this->browser_object_->QueryInterface(IID_IWebBrowser2, reinterpret_cast<void**>(&web_browser))) || !web_browser)
+	if (FAILED(this->browser_object_->QueryInterface(IID_IWebBrowser2, reinterpret_cast<void**>(&web_browser))) || !
+		web_browser)
 		return {};
 
 	return std::shared_ptr<IWebBrowser2>(web_browser, object_deleter);
@@ -105,7 +106,9 @@ std::shared_ptr<IHTMLDocument2> html_frame::get_document() const
 	if (!dispatch) return {};
 
 	IHTMLDocument2* document = nullptr;
-	if (FAILED(dispatch->QueryInterface(IID_IHTMLDocument2, reinterpret_cast<void**>(&document))) || !document) return {};
+	if (FAILED(dispatch->QueryInterface(IID_IHTMLDocument2, reinterpret_cast<void**>(&document))) || !document)
+		return
+			{};
 
 	return std::shared_ptr<IHTMLDocument2>(document, object_deleter);
 }
@@ -122,8 +125,9 @@ void html_frame::initialize(const HWND window)
 void html_frame::create_browser()
 {
 	LPCLASSFACTORY class_factory = nullptr;
-	if (FAILED(CoGetClassObject(CLSID_WebBrowser, CLSCTX_INPROC_SERVER | CLSCTX_INPROC_HANDLER, nullptr, IID_IClassFactory,
-	                     reinterpret_cast<void **>(&class_factory))) || !class_factory)
+	if (FAILED(
+		CoGetClassObject(CLSID_WebBrowser, CLSCTX_INPROC_SERVER | CLSCTX_INPROC_HANDLER, nullptr, IID_IClassFactory,
+			reinterpret_cast<void **>(&class_factory))) || !class_factory)
 	{
 		throw std::runtime_error("Unable to get the class factory");
 	}

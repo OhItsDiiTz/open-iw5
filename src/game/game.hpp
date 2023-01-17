@@ -393,7 +393,7 @@ namespace game
 		bool Sys_IsServerThread();
 		void Sys_LockRead(FastCriticalSection* critSect);
 		void Sys_UnlockRead(FastCriticalSection* critSect);
-		void Sys_OutOfMemErrorInternal(const char* filename, int line);
+		[[noreturn]] void Sys_OutOfMemErrorInternal(const char* filename, int line);
 
 		bool FS_Initialized();
 		int FS_FOpenFileReadForThread(const char* filename, int* file, FsThread thread);

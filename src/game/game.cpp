@@ -553,7 +553,7 @@ namespace game
 			InterlockedDecrement(&critSect->readCount);
 		}
 
-		void Sys_OutOfMemErrorInternal(const char* filename, int line)
+		[[noreturn]] void Sys_OutOfMemErrorInternal(const char* filename, int line)
 		{
 			Sys_EnterCriticalSection(CRITSECT_FATAL_ERROR);
 

@@ -1,14 +1,14 @@
 #include <std_include.hpp>
 #include "html_frame.hpp"
-#include "utils/nt.hpp"
-#include "utils/hook.hpp"
+#include <utils/nt.hpp>
+#include <utils/hook.hpp>
 
 std::atomic<int> html_frame::frame_count_ = 0;
 
 namespace
 {
 	void* original_func{};
-	GUID browser_emulation_guid{0xac969931, 0x3566, 0x4b50, {0xae, 0x48, 0x71, 0xb9, 0x6a, 0x75, 0xc8, 0x79}};
+	GUID browser_emulation_guid{0xAC969931, 0x3566, 0x4B50, {0xAE, 0x48, 0x71, 0xB9, 0x6A, 0x75, 0xC8, 0x79}};
 
 	int WINAPI co_internet_feature_value_internal_stub(const GUID* guid, uint32_t* result)
 	{
@@ -28,7 +28,7 @@ namespace
 		static const auto _ = []
 		{
 			const auto urlmon = utils::nt::library::load("urlmon.dll"s);
-			const auto target = urlmon.get_iat_entry("iertutil.dll", MAKEINTRESOURCEA(700));
+			auto** target = urlmon.get_iat_entry("iertutil.dll"s, MAKEINTRESOURCEA(700));
 
 			original_func = *target;
 			utils::hook::set(target, co_internet_feature_value_internal_stub);
@@ -118,9 +118,10 @@ std::shared_ptr<IWebBrowser2> html_frame::get_web_browser() const
 	if (!this->browser_object_) return {};
 
 	IWebBrowser2* web_browser = nullptr;
-	if (FAILED(this->browser_object_->QueryInterface(IID_IWebBrowser2, reinterpret_cast<void**>(&web_browser))) || !
-		web_browser)
+	if (FAILED(this->browser_object_->QueryInterface(IID_IWebBrowser2, reinterpret_cast<void**>(&web_browser))) || !web_browser)
+	{
 		return {};
+	}
 
 	return std::shared_ptr<IWebBrowser2>(web_browser, object_deleter);
 }
@@ -143,8 +144,9 @@ std::shared_ptr<IHTMLDocument2> html_frame::get_document() const
 
 	IHTMLDocument2* document = nullptr;
 	if (FAILED(dispatch->QueryInterface(IID_IHTMLDocument2, reinterpret_cast<void**>(&document))) || !document)
-		return
-			{};
+	{
+		return {};
+	}
 
 	return std::shared_ptr<IHTMLDocument2>(document, object_deleter);
 }
@@ -161,9 +163,7 @@ void html_frame::initialize(const HWND window)
 void html_frame::create_browser()
 {
 	LPCLASSFACTORY class_factory = nullptr;
-	if (FAILED(
-		CoGetClassObject(CLSID_WebBrowser, CLSCTX_INPROC_SERVER | CLSCTX_INPROC_HANDLER, nullptr, IID_IClassFactory,
-			reinterpret_cast<void **>(&class_factory))) || !class_factory)
+	if (FAILED(CoGetClassObject(CLSID_WebBrowser, CLSCTX_INPROC_SERVER | CLSCTX_INPROC_HANDLER, nullptr, IID_IClassFactory, reinterpret_cast<void **>(&class_factory))) || !class_factory)
 	{
 		throw std::runtime_error("Unable to get the class factory");
 	}

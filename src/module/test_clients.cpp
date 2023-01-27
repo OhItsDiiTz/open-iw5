@@ -9,7 +9,7 @@
 #include "test_clients.hpp"
 #include "command.hpp"
 #include "scheduler.hpp"
-#include "log_file.hpp"
+#include "console.hpp"
 
 bool test_clients::can_add()
 {
@@ -205,7 +205,7 @@ void test_clients::post_load()
 		const auto count = std::strtol(input, &end, 10);
 		if (input == end)
 		{
-			log_file::info("%s is not a valid input\nUsage: %s <number of bots>\n", input, params.get(0));
+			console::info("%s is not a valid input\nUsage: %s <number of bots>\n", input, params.get(0));
 			return;
 		}
 

@@ -6,7 +6,8 @@ public:
 	void post_load() override;
 
 	static void com_log_print_message(const std::string& msg);
-	static void info(const char* fmt, ...);
+
+	static void info(const std::string& msg);
 
 	static const game::native::dvar_t* com_logfile;
 

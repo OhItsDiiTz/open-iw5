@@ -30,7 +30,7 @@ void log_file::com_open_log_file()
 		file_system::open_file_by_mode(log_file_name, game::native::logfile, game::native::FS_APPEND_SYNC);
 
 		asctime_s(time_buffer, sizeof(time_buffer), &new_time);
-		info("logfile opened on %s\n", time_buffer);
+		info(std::format("logfile opened on {}\n", time_buffer));
 		opening_qconsole = 0;
 		com_console_log_open_failed = *game::native::logfile == 0;
 	}
@@ -66,21 +66,12 @@ void log_file::com_log_print_message(const std::string& msg)
 	}
 }
 
-void log_file::info(const char* fmt, ...)
+void log_file::info(const std::string& msg)
 {
-	char msg[0x1000]{};
-	va_list argptr;
-
-	va_start(argptr, fmt);
-	vsnprintf_s(msg, _TRUNCATE, fmt, argptr);
-	va_end(argptr);
-
 	if (com_logfile && com_logfile->current.integer)
 	{
 		com_log_print_message(msg);
 	}
-
-	console::info("%s", msg);
 }
 
 void log_file::post_load()

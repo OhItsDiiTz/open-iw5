@@ -4,7 +4,7 @@
 
 #include "script_loading.hpp"
 
-#include "module/log_file.hpp"
+#include "module/console.hpp"
 #include "module/scripting.hpp"
 
 #include <utils/hook.hpp>
@@ -72,9 +72,9 @@ namespace gsc
 			}
 			catch (const std::exception& ex)
 			{
-				log_file::info("*********** script compile error *************\n");
-				log_file::info("failed to compile '%s':\n%s", real_name.data(), ex.what());
-				log_file::info("**********************************************\n");
+				console::error("*********** script compile error *************\n");
+				console::error("failed to compile '%s':\n%s", real_name.data(), ex.what());
+				console::error("**********************************************\n");
 				return nullptr;
 			}
 
@@ -86,9 +86,9 @@ namespace gsc
 			}
 			catch (const std::exception& ex)
 			{
-				log_file::info("*********** script compile error *************\n");
-				log_file::info("failed to assemble '%s':\n%s", real_name.data(), ex.what());
-				log_file::info("**********************************************\n");
+				console::error("*********** script compile error *************\n");
+				console::error("failed to assemble '%s':\n%s", real_name.data(), ex.what());
+				console::error("**********************************************\n");
 				return nullptr;
 			}
 

@@ -4,7 +4,7 @@
 
 #include "console.hpp"
 #include "scheduler.hpp"
-
+#include "log_file.hpp"
 
 #include <utils/concurrency.hpp>
 
@@ -101,6 +101,7 @@ void console::log_message(const std::string& message)
 
 void console::dispatch_message([[maybe_unused]] const int type, const std::string& message)
 {
+	log_file::info(message);
 	message_queue_.access([&message](message_queue& queue)
 	{
 		queue.emplace(message);

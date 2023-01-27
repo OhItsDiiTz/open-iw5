@@ -5,7 +5,7 @@
 #include "script_error.hpp"
 #include "script_loading.hpp"
 
-#include "module/log_file.hpp"
+#include "module/console.hpp"
 #include "module/scripting.hpp"
 
 #include <utils/hook.hpp>
@@ -140,17 +140,17 @@ namespace gsc
 
 			if (function_id > (scr_func_max_id - 1))
 			{
-				log_file::info("in call to builtin method \"%s\"%s\n", xsk::gsc::iw5::resolver::method_name(function_id).data(), error.data());
+				console::error("in call to builtin method \"%s\"%s\n", xsk::gsc::iw5::resolver::method_name(function_id).data(), error.data());
 			}
 			else
 			{
-				log_file::info("in call to builtin function \"%s\"%s\n", xsk::gsc::iw5::resolver::function_name(function_id).data(), error.data());
+				console::error("in call to builtin function \"%s\"%s\n", xsk::gsc::iw5::resolver::function_name(function_id).data(), error.data());
 			}
 		}
 
 		void vm_error_stub(int mark_pos)
 		{
-			log_file::info("******* script runtime error ********\n");
+			console::error("******* script runtime error ********\n");
 
 			const auto opcode_id = *reinterpret_cast<std::uint8_t*>(SELECT_VALUE(0x1BF6928, 0x20B8E28));
 			const auto error = (*gsc_error_msg) ? std::format(": {}\n", gsc_error_msg) : std::string();
@@ -164,17 +164,17 @@ namespace gsc
 				const auto opcode = get_opcode_name(opcode_id);
 				if (opcode.has_value())
 				{
-					log_file::info("while processing instruction %s%s\n", opcode.value().data(), error.data());
+					console::error("while processing instruction %s%s\n", opcode.value().data(), error.data());
 				}
 				else
 				{
-					log_file::info("while processing instruction 0x%X%s\n", opcode_id, error.data());
+					console::error("while processing instruction 0x%X%s\n", opcode_id, error.data());
 				}
 			}
 
 			ZeroMemory(gsc_error_msg, sizeof(gsc_error_msg));
 
-			log_file::info("************************************\n");
+			console::error("************************************\n");
 
 			game::native::LargeLocalResetToMark(mark_pos);
 		}

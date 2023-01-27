@@ -2,7 +2,7 @@
 #include <loader/module_loader.hpp>
 #include "game/game.hpp"
 
-#include "log_file.hpp"
+#include "console.hpp"
 
 #include <utils/hook.hpp>
 
@@ -31,7 +31,7 @@ private:
 		const auto* dvar = game::native::Dvar_FindVar(dvar_name);
 		if (dvar != nullptr && ((dvar->flags & game::native::DVAR_ARCHIVE) != 0))
 		{
-			log_file::info("Not allowing server to override archive dvar '%s'\n", dvar_name);
+			console::info("Not allowing server to override archive dvar '%s'\n", dvar_name);
 			return;
 		}
 

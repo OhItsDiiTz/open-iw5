@@ -3,6 +3,7 @@
 #include "game/game.hpp"
 
 #include "command.hpp"
+#include "console.hpp"
 #include "log_file.hpp"
 #include "dvar.hpp"
 
@@ -52,68 +53,68 @@ void dvar::list_single(const game::native::dvar_t* dvar, void* user_data)
 
 	if (dvar->flags & game::native::DVAR_SERVERINFO)
 	{
-		log_file::info("S");
+		console::info("S");
 	}
 	else
 	{
-		log_file::info(" ");
+		console::info(" ");
 	}
 
 	if (dvar->flags & game::native::DVAR_USERINFO)
 	{
-		log_file::info("U");
+		console::info("U");
 	}
 	else
 	{
-		log_file::info(" ");
+		console::info(" ");
 	}
 
 	if (dvar->flags & game::native::DVAR_ROM)
 	{
-		log_file::info("R");
+		console::info("R");
 	}
 	else
 	{
-		log_file::info(" ");
+		console::info(" ");
 	}
 
 	if (dvar->flags & game::native::DVAR_INIT)
 	{
-		log_file::info("I");
+		console::info("I");
 	}
 	else
 	{
-		log_file::info(" ");
+		console::info(" ");
 	}
 
 	if (dvar->flags & game::native::DVAR_ARCHIVE)
 	{
-		log_file::info("A");
+		console::info("A");
 	}
 	else
 	{
-		log_file::info(" ");
+		console::info(" ");
 	}
 
 	if (dvar->flags & game::native::DVAR_LATCH)
 	{
-		log_file::info("L");
+		console::info("L");
 	}
 	else
 	{
-		log_file::info(" ");
+		console::info(" ");
 	}
 
 	if (dvar->flags & game::native::DVAR_CHEAT)
 	{
-		log_file::info("C");
+		console::info("C");
 	}
 	else
 	{
-		log_file::info(" ");
+		console::info(" ");
 	}
 
-	log_file::info(" %s \"%s\"\n", dvar->name, game::native::Dvar_DisplayableValue(dvar));
+	console::info(" %s \"%s\"\n", dvar->name, game::native::Dvar_DisplayableValue(dvar));
 }
 
 void dvar::com_dvar_dump_single(const game::native::dvar_t* dvar, void* user_data)
@@ -137,7 +138,7 @@ void dvar::com_dvar_dump_single(const game::native::dvar_t* dvar, void* user_dat
 		sprintf_s(message, "      %s \"%s\"\n", dvar->name, game::native::Dvar_DisplayableValue(dvar));
 	}
 
-	log_file::info("%s", message);
+	console::info("%s", message);
 }
 
 void dvar::com_dvar_dump(int channel, const char* match)
@@ -150,14 +151,14 @@ void dvar::com_dvar_dump(int channel, const char* match)
 		return;
 	}
 
-	log_file::info("=============================== DVAR DUMP ========================================\n");
+	console::info("=============================== DVAR DUMP ========================================\n");
 	dump_info.count = 0;
 	dump_info.channel = channel;
 	dump_info.match = match;
 	game::native::Dvar_ForEach(com_dvar_dump_single, &dump_info);
 	sprintf_s(summary, "\n%i total dvars\n%i dvar indexes\n", dump_info.count, *game::native::dvarCount);
-	log_file::info("%s", summary);
-	log_file::info("=============================== END DVAR DUMP =====================================\n");
+	console::info("%s", summary);
+	console::info("=============================== END DVAR DUMP =====================================\n");
 }
 
 void dvar::dump_f(const command::params& params)
@@ -188,7 +189,7 @@ void dvar::list_f(const command::params& params)
 	}
 
 	game::native::Dvar_ForEach(list_single, (void*)match);
-	log_file::info("\n%i total dvars\n", *game::native::dvarCount);
+	console::info("\n%i total dvars\n", *game::native::dvarCount);
 }
 
 void dvar::post_load()

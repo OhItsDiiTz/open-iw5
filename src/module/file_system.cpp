@@ -5,8 +5,8 @@
 #include <utils/hook.hpp>
 
 #include "command.hpp"
+#include "console.hpp"
 #include "file_system.hpp"
-#include "log_file.hpp"
 
 namespace
 {
@@ -38,7 +38,7 @@ namespace
 			return file;
 		}
 
-		log_file::info("Couldn't open file: %s %s\n", filename, std::strerror(errno));
+		console::error("Couldn't open file: %s %s\n", filename, std::strerror(errno));
 		return nullptr;
 	}
 
@@ -51,7 +51,7 @@ namespace
 			return file;
 		}
 
-		log_file::info("Couldn't open file: %s %s\n", filename, std::strerror(errno));
+		console::error("Couldn't open file: %s %s\n", filename, std::strerror(errno));
 		return nullptr;
 	}
 
@@ -158,7 +158,7 @@ namespace
 		build_os_path_for_thread(basepath, game::native::fs_gamedir, filename, ospath, game::native::FS_THREAD_MAIN);
 		if ((*fs_debug)->current.integer)
 		{
-			log_file::info("FS_FOpenFileAppend: %s\n", ospath);
+			console::info("FS_FOpenFileAppend: %s\n", ospath);
 		}
 
 		if (game::native::FS_CreatePath(ospath))
@@ -216,7 +216,7 @@ namespace
 
 		if ((*fs_debug)->current.integer)
 		{
-			log_file::info("FS_FOpenFileWriteToDirForThread: %s\n", ospath);
+			console::info("FS_FOpenFileWriteToDirForThread: %s\n", ospath);
 		}
 
 		if (game::native::FS_CreatePath(ospath))
@@ -355,13 +355,13 @@ namespace
 	{
 		auto i_language = game::native::SEH_GetCurrentLanguage();
 		const auto* psz_language_name = game::native::SEH_GetLanguageName(i_language);
-		log_file::info("Current language: %s\n", psz_language_name);
+		console::info("Current language: %s\n", psz_language_name);
 		if ((*fs_ignoreLocalized)->current.enabled)
 		{
-			log_file::info("    localized assets are being ignored\n");
+			console::info("    localized assets are being ignored\n");
 		}
 
-		log_file::info("Current search path:\n");
+		console::info("Current search path:\n");
 		for (auto* s = *game::native::fs_searchpaths; s; s = s->next)
 		{
 			if (b_language_cull && !use_search_path(s))
@@ -371,40 +371,40 @@ namespace
 
 			if (s->iwd)
 			{
-				log_file::info("%s (%i files)\n", s->iwd->iwdFilename, s->iwd->numfiles);
+				console::info("%s (%i files)\n", s->iwd->iwdFilename, s->iwd->numfiles);
 				if (s->bLocalized)
 				{
-					log_file::info("    localized assets iwd file for %s\n", game::native::SEH_GetLanguageName(s->language));
+					console::info("    localized assets iwd file for %s\n", game::native::SEH_GetLanguageName(s->language));
 				}
 
 				if (*game::native::fs_numServerIwds)
 				{
 					if (iwd_is_pure(s->iwd))
 					{
-						log_file::info("    on the pure list\n");
+						console::info("    on the pure list\n");
 					}
 					else
 					{
-						log_file::info("    not on the pure list\n");
+						console::info("    not on the pure list\n");
 					}
 				}
 			}
 			else
 			{
-				log_file::info("%s/%s\n", s->dir->path, s->dir->gamedir);
+				console::info("%s/%s\n", s->dir->path, s->dir->gamedir);
 				if (s->bLocalized)
 				{
-					log_file::info("    localized assets game folder for %s\n", game::native::SEH_GetLanguageName(s->language));
+					console::info("    localized assets game folder for %s\n", game::native::SEH_GetLanguageName(s->language));
 				}
 			}
 		}
 
-		log_file::info("\nFile Handles:\n");
+		console::info("\nFile Handles:\n");
 		for (int i = 1; i < 64; ++i)
 		{
 			if (game::native::fsh[i].handleFiles.file.o)
 			{
-				log_file::info("handle %i: %s\n", i, game::native::fsh[i].name);
+				console::info("handle %i: %s\n", i, game::native::fsh[i].name);
 			}
 		}
 	}
@@ -434,7 +434,7 @@ namespace
 
 		if (game::native::Cmd_Argc() < 2 || game::native::Cmd_Argc() > 3)
 		{
-			log_file::info("usage: dir <directory> [extension]\n");
+			console::info("usage: dir <directory> [extension]\n");
 			return;
 		}
 
@@ -449,14 +449,14 @@ namespace
 			extension = game::native::Cmd_Argv(2);
 		}
 
-		log_file::info("Directory of %s %s\n", path, extension);
-		log_file::info("---------------\n");
+		console::info("Directory of %s %s\n", path, extension);
+		console::info("---------------\n");
 
 		auto** dirnames = list_files(path, extension, game::native::FS_LIST_PURE_ONLY, &ndirs, 3);
 
 		for (int i = 0; i < ndirs; ++i)
 		{
-			log_file::info("%s\n", dirnames[i]);
+			console::info("%s\n", dirnames[i]);
 		}
 
 		game::native::Sys_FreeFileList(dirnames);
@@ -468,14 +468,14 @@ namespace
 
 		if (game::native::Cmd_Argc() < 2)
 		{
-			log_file::info("usage: fdir <filter>\n");
-			log_file::info("example: fdir *q3dm*.bsp\n");
+			console::info("usage: fdir <filter>\n");
+			console::info("example: fdir *q3dm*.bsp\n");
 			return;
 		}
 
 		const auto* filter = game::native::Cmd_Argv(1);
 
-		log_file::info("---------------\n");
+		console::info("---------------\n");
 
 		auto** dirnames = game::native::FS_ListFilteredFiles(*game::native::fs_searchpaths, "", "", filter, game::native::FS_LIST_PURE_ONLY, &ndirs, 3);
 		sort_file_list(dirnames, ndirs);
@@ -483,9 +483,10 @@ namespace
 		for (auto i = 0; i < ndirs; ++i)
 		{
 			convert_path(dirnames[i]);
-			log_file::info("%s\n", dirnames[i]);
+			console::info("%s\n", dirnames[i]);
 		}
-		log_file::info("%d files listed\n", ndirs);
+
+		console::info("%d files listed\n", ndirs);
 		game::native::Sys_FreeFileList(dirnames);
 	}
 
@@ -493,7 +494,7 @@ namespace
 	{
 		if (game::native::Cmd_Argc() != 2)
 		{
-			log_file::info("Usage: touchFile <file>\n");
+			console::info("Usage: touchFile <file>\n");
 			return;
 		}
 
@@ -511,15 +512,15 @@ namespace
 
 	void fs_startup_stub(char* game_name)
 	{
-		log_file::info("----- FS_Startup -----\n");
+		console::info("----- FS_Startup -----\n");
 
 		utils::hook::invoke<void>(0x5B1070, game_name);
 
 		add_commands();
 		display_path(true);
 
-		log_file::info("----------------------\n");
-		log_file::info("%d files in iwd files\n", *game::native::fs_iwdFileCount);
+		console::info("----------------------\n");
+		console::info("%d files in iwd files\n", *game::native::fs_iwdFileCount);
 	}
 
 	void fs_shutdown_stub(int closemfp)

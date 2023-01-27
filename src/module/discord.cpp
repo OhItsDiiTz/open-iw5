@@ -3,7 +3,7 @@
 #include "game/game.hpp"
 
 #include "scheduler.hpp"
-#include "log_file.hpp"
+#include "console.hpp"
 
 #include <discord_rpc.h>
 
@@ -44,7 +44,7 @@ private:
 
 	static void errored(const int error_code, const char* message)
 	{
-		log_file::info("Discord: (%i) %s", error_code, message);
+		console::error("Discord: (%i) %s", error_code, message);
 	}
 };
 

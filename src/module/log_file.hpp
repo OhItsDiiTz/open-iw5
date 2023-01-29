@@ -12,6 +12,7 @@ public:
 	static const game::native::dvar_t* com_logfile;
 
 private:
+	static std::mutex log_file_mutex;
 	static const char* log_file_name;
 
 	static int opening_qconsole;

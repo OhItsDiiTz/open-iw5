@@ -5,7 +5,8 @@
 
 #include "log_file.hpp"
 #include "file_system.hpp"
-#include "console.hpp"
+
+std::mutex log_file::log_file_mutex;
 
 const char* log_file::log_file_name;
 
@@ -68,6 +69,8 @@ void log_file::com_log_print_message(const std::string& msg)
 
 void log_file::info(const std::string& msg)
 {
+	std::lock_guard _(log_file_mutex);
+
 	if (com_logfile && com_logfile->current.integer)
 	{
 		com_log_print_message(msg);

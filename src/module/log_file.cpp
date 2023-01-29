@@ -31,7 +31,7 @@ void log_file::com_open_log_file()
 		file_system::open_file_by_mode(log_file_name, game::native::logfile, game::native::FS_APPEND_SYNC);
 
 		asctime_s(time_buffer, sizeof(time_buffer), &new_time);
-		info(std::format("logfile opened on {}\n", time_buffer));
+		std::cout << "logfile opened on " << time_buffer << "\n"; // no recursive call to 'info'
 		opening_qconsole = 0;
 		com_console_log_open_failed = *game::native::logfile == 0;
 	}

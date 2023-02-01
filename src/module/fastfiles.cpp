@@ -84,7 +84,7 @@ public:
 
 		db_find_x_asset_header_hook.create(game::native::DB_FindXAssetHeader, &db_find_x_asset_header_stub);
 
-		g_dump_scripts = game::Dvar_RegisterBool("g_dumpScripts", false, game::native::DVAR_NONE, "Dump GSC scripts to binary format");
+		g_dump_scripts = game::native::Dvar_RegisterBool("g_dumpScripts", false, game::native::DVAR_NONE, "Dump GSC scripts to binary format");
 	}
 
 private:

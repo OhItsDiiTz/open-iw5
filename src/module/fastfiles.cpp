@@ -5,6 +5,7 @@
 #include "console.hpp"
 
 #include <utils/hook.hpp>
+#include <utils/io.hpp>
 
 namespace
 {

@@ -278,6 +278,8 @@ namespace game
 
 		extern float* com_codeTimeScale;
 
+		extern int* com_frameTime;
+
 		extern RTL_CRITICAL_SECTION* s_criticalSection;
 
 		extern int* logfile;

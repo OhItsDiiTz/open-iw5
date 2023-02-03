@@ -145,6 +145,8 @@ namespace game
 
 		float* com_codeTimeScale;
 
+		int* com_frameTime;
+
 		RTL_CRITICAL_SECTION* s_criticalSection;
 
 		int* logfile;
@@ -872,6 +874,8 @@ namespace game
 		native::deferredQueue = reinterpret_cast<native::DeferredQueue*>(SELECT_VALUE(0x0, 0x1D55438));
 
 		native::com_codeTimeScale = reinterpret_cast<float*>(SELECT_VALUE(0x1769F1C, 0x1CEF554));
+
+		native::com_frameTime = reinterpret_cast<int*>(SELECT_VALUE(0x0, 0x1CF0B88));
 
 		native::s_criticalSection = reinterpret_cast<RTL_CRITICAL_SECTION*>(SELECT_VALUE(0x1CD5638, 0x5A91048));
 

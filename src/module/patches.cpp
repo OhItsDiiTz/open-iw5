@@ -4,6 +4,70 @@
 
 #include <utils/hook.hpp>
 
+#include "console.hpp"
+
+namespace
+{
+	__declspec(noreturn) void long_jump_stub(jmp_buf buf, const int value) noexcept(false)
+	{
+#ifdef _DEBUG
+		{
+			printf("Unwinding the stack...\n");
+		}
+#endif
+
+		longjmp(buf, value);
+	}
+
+	const game::native::dvar_t* dvar_register_com_max_fps(const char* dvarName, int value,
+		int min, int /*max*/, unsigned __int16 /*flags*/, const char* description)
+	{
+		return game::native::Dvar_RegisterInt(dvarName, value, min, 1000, game::native::DVAR_ARCHIVE, description);
+	}
+
+	const char* live_get_local_client_name_stub()
+	{
+		return game::native::Dvar_FindVar("name")->current.string;
+	}
+
+	void com_clamp_msec(const int msec)
+	{
+		if (msec > 500 && msec < 500000)
+		{
+			console::warn("Hitch warning: %i msec frame time\n", msec);
+		}
+	}
+
+	__declspec(naked) void com_clamp_msec_stub()
+	{
+		using namespace game::native;
+
+		__asm
+		{
+			pushad
+
+			push esi
+			call com_clamp_msec
+			add esp, 0x4
+
+			popad
+
+			// Game's code
+			cmp esi, eax
+			jle label_5565DA
+
+			mov esi, eax
+
+			push 0x5565D6
+			ret
+
+		label_5565DA:
+			push 0x5565DA
+			ret
+		}
+	}
+}
+
 class patches final : public module
 {
 public:
@@ -56,6 +120,10 @@ private:
 
 		utils::hook(0x5C9980, &live_get_local_client_name_stub, HOOK_JUMP).install()->quick();
 
+		// Add back warning
+		utils::hook(0x5565D0, &com_clamp_msec_stub, HOOK_JUMP).install()->quick(); // Com_Frame_Try_Block_Function
+		utils::hook::nop(0x5565D0 + 5, 1);
+
 		// Unpure client detected
 		utils::hook::set<std::uint8_t>(0x57228C, 0xEB);
 
@@ -75,28 +143,6 @@ private:
 		// Disable callvote/vote exploit
 		utils::hook::nop(0x47EB9D, 5);
 		utils::hook::nop(0x47EBC9, 5);
-	}
-
-	static __declspec(noreturn) void long_jump_stub(jmp_buf buf, const int value) noexcept(false)
-	{
-#ifdef _DEBUG
-		{
-			printf("Unwinding the stack...\n");
-		}
-#endif
-
-		longjmp(buf, value);
-	}
-
-	static const game::native::dvar_t* dvar_register_com_max_fps(const char* dvarName, int value,
-		int min, int /*max*/, unsigned __int16 /*flags*/, const char* description)
-	{
-		return game::native::Dvar_RegisterInt(dvarName, value, min, 1000, game::native::DVAR_ARCHIVE, description);
-	}
-
-	static const char* live_get_local_client_name_stub()
-	{
-		return game::native::Dvar_FindVar("name")->current.string;
 	}
 };
 

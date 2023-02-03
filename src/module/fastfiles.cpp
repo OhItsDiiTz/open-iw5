@@ -29,7 +29,7 @@ namespace
 
 	void dump_gsc_script(const std::string& name, game::native::XAssetHeader header)
 	{
-		if (g_dump_scripts->current.enabled)
+		if (!g_dump_scripts->current.enabled)
 		{
 			return;
 		}

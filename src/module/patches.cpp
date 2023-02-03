@@ -108,6 +108,9 @@ private:
 
 		// Some whitelist
 		utils::hook::nop(0x605F3C, 2);
+
+		// Remove "me_pictureframes" censorship
+		utils::hook::set<std::uint8_t>(0x4149C3, 0xEB);
 	}
 
 	void patch_mp() const
@@ -133,6 +136,9 @@ private:
 
 		// Some whitelist
 		utils::hook::nop(0x54641D, 2);
+
+		// Remove "me_pictureframes" censorship
+		utils::hook::set<std::uint8_t>(0x4CC493, 0xEB);
 	}
 
 	void patch_dedi() const

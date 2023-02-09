@@ -9,6 +9,7 @@ const game::native::dvar_t* player_movement::player_sustainAmmo;
 const game::native::dvar_t* player_movement::player_lastStandCrawlSpeedScale;
 const game::native::dvar_t* player_movement::player_duckedSpeedScale;
 const game::native::dvar_t* player_movement::player_proneSpeedScale;
+const game::native::dvar_t* player_movement::player_sprintUnlimited;
 const game::native::dvar_t* player_movement::jump_slowdownEnable;
 const game::native::dvar_t* player_movement::jump_ladderPushVel;
 const game::native::dvar_t* player_movement::jump_enableFallDamage;
@@ -27,6 +28,7 @@ const game::native::dvar_t* player_movement::g_speed;
 DWORD player_movement::bounce_addr;
 DWORD player_movement::dont_bounce_addr;
 DWORD player_movement::pm_project_velocity_addr;
+DWORD player_movement::pm_end_sprint_addr;
 DWORD player_movement::push_off_ladder_addr;
 DWORD player_movement::jump_start_addr;
 DWORD player_movement::jump_get_step_height_addr;
@@ -61,6 +63,57 @@ __declspec(naked) void player_movement::pm_step_slide_move_stub()
 
 	dont_bounce:
 		jmp dont_bounce_addr
+	}
+}
+
+int player_movement::pm_get_sprint_left_last_time_stub(game::native::playerState_s* ps)
+{
+	if (player_sprintUnlimited->current.enabled)
+	{
+		return game::native::BG_GetMaxSprintTime(ps);
+	}
+
+	return utils::hook::invoke<int>(0x41D2F0, ps);
+}
+
+__declspec(naked) void player_movement::pm_get_sprint_left_stub()
+{
+	__asm
+	{
+		push eax
+		mov eax, player_sprintUnlimited
+		cmp byte ptr [eax + 0xC], 1
+		pop eax
+
+		jnz safe_return
+
+		// playerState_s.perks: add the flag that signals unlimited sprint
+		or dword ptr [esi + 0x4EC], 0x4000
+
+	safe_return:
+		push 0x41D25C // ret address
+		push 0x41BA70 // BG_GetMaxSprintTime
+		ret
+	}
+}
+
+__declspec(naked) void player_movement::pm_end_sprint_stub()
+{
+	__asm
+	{
+		push eax
+		mov eax, player_sprintUnlimited
+		cmp byte ptr [eax + 0xC], 1
+		pop eax
+
+		jnz safe_return
+
+		// Do not stop sprinting
+		ret
+
+	safe_return:
+		call pm_end_sprint_addr
+		ret
 	}
 }
 
@@ -421,6 +474,15 @@ const game::native::dvar_t* player_movement::dvar_register_player_sustain_ammo(c
 	return player_sustainAmmo;
 }
 
+const game::native::dvar_t* player_movement::dvar_register_player_print_unlimited(const char* dvar_name,
+	bool value, unsigned __int16 /*flags*/, const char* description)
+{
+	player_sprintUnlimited = game::native::Dvar_RegisterBool(dvar_name,
+		value, game::native::DVAR_CODINFO, description);
+
+	return player_sprintUnlimited;
+}
+
 const game::native::dvar_t* player_movement::dvar_register_jump_ladder_push_vel(const char* dvar_name,
 	float value, float min, float max, unsigned __int16 /*flags*/, const char* description)
 {
@@ -478,6 +540,7 @@ void player_movement::patch_mp()
 
 	// Un-Cheat the dvars
 	utils::hook(0x418D9C, dvar_register_player_sustain_ammo, HOOK_CALL).install()->quick();
+	utils::hook(0x4190C0, dvar_register_player_print_unlimited, HOOK_CALL).install()->quick();
 	utils::hook(0x4160A7, dvar_register_jump_ladder_push_vel, HOOK_CALL).install()->quick();
 	utils::hook(0x41602B, dvar_register_jump_height, HOOK_CALL).install()->quick();
 	utils::hook(0x416074, dvar_register_jump_slowdown_enable, HOOK_CALL).install()->quick();
@@ -489,6 +552,9 @@ void player_movement::patch_mp()
 	utils::hook(0x42AE95, pm_weapon_use_ammo, HOOK_CALL).install()->quick();
 
 	utils::hook(0x424D51, pm_step_slide_move_stub, HOOK_JUMP).install()->quick();
+	utils::hook(0x45B7C6, pm_get_sprint_left_last_time_stub, HOOK_CALL).install()->quick(); // CG_CalcPlayerSprintColor
+	utils::hook(0x41D257, pm_get_sprint_left_stub, HOOK_JUMP).install()->quick();
+	utils::hook(0x41D58B, pm_end_sprint_stub, HOOK_CALL).install()->quick(); // PM_UpdateSprint
 
 	utils::hook(0x4F9EFB, stuck_in_client_stub, HOOK_CALL).install()->quick(); // ClientEndFrame
 	utils::hook(0x57CF45, cm_transformed_capsule_trace_stub, HOOK_CALL).install()->quick(); // SV_ClipMoveToEntity
@@ -618,6 +684,7 @@ void player_movement::post_load()
 	bounce_addr = SELECT_VALUE(0x43D91F, 0x424D58);
 	dont_bounce_addr = SELECT_VALUE(0x43D933, 0x424D6C);
 	pm_project_velocity_addr = SELECT_VALUE(0x4A57Ef, 0x41D19F);
+	pm_end_sprint_addr = SELECT_VALUE(0x0, 0x41D350);
 	push_off_ladder_addr = SELECT_VALUE(0x63EA4C, 0x41686C);
 	jump_start_addr = SELECT_VALUE(0x63E910, 0x4166F6);
 	jump_get_step_height_addr = SELECT_VALUE(0x48C1E2, 0x416145);

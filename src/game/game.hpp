@@ -158,6 +158,9 @@ namespace game
 		typedef unsigned int (*BG_NetDataChecksum_t)();
 		extern BG_NetDataChecksum_t BG_NetDataChecksum;
 
+		typedef int (*BG_GetMaxSprintTime_t)(void* ps);
+		extern BG_GetMaxSprintTime_t BG_GetMaxSprintTime;
+
 		typedef int (*LiveStorage_GetPersistentDataDefVersion_t)();
 		extern LiveStorage_GetPersistentDataDefVersion_t LiveStorage_GetPersistentDataDefVersion;
 

@@ -74,6 +74,7 @@ namespace game
 		VM_Notify_t VM_Notify;
 
 		BG_NetDataChecksum_t BG_NetDataChecksum;
+		BG_GetMaxSprintTime_t BG_GetMaxSprintTime;
 
 		LiveStorage_GetPersistentDataDefVersion_t LiveStorage_GetPersistentDataDefVersion;
 		LiveStorage_GetPersistentDataDefFormatChecksum_t LiveStorage_GetPersistentDataDefFormatChecksum;
@@ -789,6 +790,7 @@ namespace game
 		native::VM_Notify = native::VM_Notify_t(SELECT_VALUE(0x610200, 0x569720));
 
 		native::BG_NetDataChecksum = native::BG_NetDataChecksum_t(SELECT_VALUE(0x0, 0x41BB20));
+		native::BG_GetMaxSprintTime = native::BG_GetMaxSprintTime_t(SELECT_VALUE(0x4FAA50, 0x41BA70));
 
 		native::LiveStorage_GetPersistentDataDefVersion = native::LiveStorage_GetPersistentDataDefVersion_t(SELECT_VALUE(0x0, 0x548D60));
 

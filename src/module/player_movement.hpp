@@ -11,6 +11,7 @@ private:
 	static const game::native::dvar_t* player_lastStandCrawlSpeedScale;
 	static const game::native::dvar_t* player_duckedSpeedScale;
 	static const game::native::dvar_t* player_proneSpeedScale;
+	static const game::native::dvar_t* player_sprintUnlimited;
 	// Jump dvars
 	static const game::native::dvar_t* jump_slowdownEnable;
 	static const game::native::dvar_t* jump_ladderPushVel;
@@ -32,6 +33,7 @@ private:
 	static DWORD bounce_addr;
 	static DWORD dont_bounce_addr;
 	static DWORD pm_project_velocity_addr;
+	static DWORD pm_end_sprint_addr;
 	static DWORD push_off_ladder_addr;
 	static DWORD jump_start_addr;
 	static DWORD jump_get_step_height_addr;
@@ -51,8 +53,13 @@ private:
 		bool value, unsigned __int16 flags, const char* description);
 	static const game::native::dvar_t* dvar_register_player_sustain_ammo(const char* dvar_name,
 		bool value, unsigned __int16 flags, const char* description);
+	static const game::native::dvar_t* dvar_register_player_print_unlimited(const char* dvar_name,
+		bool value, unsigned __int16 flags, const char* description);
 
 	static void pm_step_slide_move_stub();
+	static int pm_get_sprint_left_last_time_stub(game::native::playerState_s* ps);
+	static void pm_get_sprint_left_stub();
+	static void pm_end_sprint_stub();
 
 	static int stuck_in_client_stub(game::native::gentity_s* self);
 	static void cm_transformed_capsule_trace_stub(game::native::trace_t* results, const float* start,

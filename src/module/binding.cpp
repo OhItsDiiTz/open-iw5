@@ -15,6 +15,8 @@ namespace
 
 	game::native::KeyState* keys;
 
+	int key_binding_offset;
+
 	int key_write_bindings_to_buffer([[maybe_unused]] int local_client_num, char* buffer, int buffer_size)
 	{
 		buffer_size = buffer_size - 4;
@@ -22,7 +24,7 @@ namespace
 
 		for (auto keyIndex = 0; keyIndex < 256; ++keyIndex)
 		{
-			if (keys[keyIndex].binding && keys[keyIndex].binding < 91)
+			if (keys[keyIndex].binding && keys[keyIndex].binding < key_binding_offset)
 			{
 				auto len = sprintf_s(&buffer[bytes_used], buffer_size - bytes_used, "bind %s \"%s\"\n",
 					game::native::Key_KeynumToString(keyIndex, false), game::native::command_whitelist[keys[keyIndex].binding]);
@@ -34,9 +36,9 @@ namespace
 
 				bytes_used += len;
 			}
-			else if (keys[keyIndex].binding >= 91)
+			else if (keys[keyIndex].binding >= key_binding_offset)
 			{
-				auto value = keys[keyIndex].binding - 91;
+				auto value = keys[keyIndex].binding - key_binding_offset;
 				if (static_cast<std::size_t>(value) < custom_binds.size() && !custom_binds[value].empty())
 				{
 					auto len = sprintf_s(&buffer[bytes_used], buffer_size - bytes_used, "bind %s \"%s\"\n",
@@ -95,7 +97,7 @@ namespace
 
 	int key_get_binding_for_cmd_stub(const char* command)
 	{
-		for (auto i = 0; i <= 91; i++)
+		for (auto i = 0; i <= key_binding_offset; i++)
 		{
 			if (game::native::command_whitelist[i] && !std::strcmp(command, game::native::command_whitelist[i]))
 			{
@@ -103,14 +105,14 @@ namespace
 			}
 		}
 
-		return 91 + get_binding_for_custom_command(command);
+		return key_binding_offset + get_binding_for_custom_command(command);
 	}
 
 	void cl_execute_key_stub(game::native::LocalClientNum_t local_client_num, int key, int down)
 	{
-		if (key >= 91)
+		if (key >= key_binding_offset)
 		{
-			key -= 91;
+			key -= key_binding_offset;
 
 			if (static_cast<std::uint32_t>(key) < custom_binds.size() && !custom_binds[key].empty())
 			{
@@ -129,18 +131,15 @@ class binding final : public module
 public:
 	void post_load() override
 	{
-		if (game::is_sp())
-		{
-			return;
-		}
+		keys = reinterpret_cast<game::native::KeyState*>(SELECT_VALUE(0xA98E44, 0xB3C760));
 
-		keys = reinterpret_cast<game::native::KeyState*>(0xB3C760);
+		key_binding_offset = SELECT_VALUE(0x51, 0x5B);
 
-		utils::hook(0x48C53A, key_write_bindings_to_buffer_stub, HOOK_CALL).install()->quick();
+		utils::hook(SELECT_VALUE(0x54BB9A, 0x48C53A), key_write_bindings_to_buffer_stub, HOOK_CALL).install()->quick();
 
-		key_get_binding_for_cmd_hook.create(0x48C1C0, &key_get_binding_for_cmd_stub);
+		key_get_binding_for_cmd_hook.create(SELECT_VALUE(0x5330A0, 0x48C1C0), &key_get_binding_for_cmd_stub);
 
-		cl_execute_key_hook.create(0x48AF00, cl_execute_key_stub);
+		cl_execute_key_hook.create(SELECT_VALUE(0x438710, 0x48AF00), cl_execute_key_stub);
 	}
 };
 

@@ -247,7 +247,10 @@ namespace game
 		extern LargeLocalResetToMark_t LargeLocalResetToMark;
 
 		typedef const char* (*Win_LocalizeRef_t)(const char* ref);
-		extern Win_LocalizeRef_t Win_LocalizeRer;
+		extern Win_LocalizeRef_t Win_LocalizeRef;
+
+		typedef const char* (*Key_KeynumToString_t)(int keynum, int translate);
+		extern Key_KeynumToString_t Key_KeynumToString;
 
 		extern decltype(longjmp)* _longjmp;
 
@@ -307,6 +310,8 @@ namespace game
 		extern FastCriticalSection* db_hashCritSect;
 
 		extern const char** g_assetNames;
+
+		extern const char** command_whitelist;
 
 		// Global Definitions & Functions
 		constexpr auto JUMP_LAND_SLOWDOWN_TIME = 1800;

@@ -118,6 +118,8 @@ namespace game
 
 		Win_LocalizeRef_t Win_LocalizeRef;
 
+		Key_KeynumToString_t Key_KeynumToString;
+
 		decltype(longjmp)* _longjmp;
 
 		CmdArgs* sv_cmd_args;
@@ -173,6 +175,8 @@ namespace game
 		FastCriticalSection* db_hashCritSect;
 
 		const char** g_assetNames;
+
+		const char** command_whitelist;
 
 		int Vec4Compare(const float* a, const float* b)
 		{
@@ -842,6 +846,8 @@ namespace game
 
 		native::Win_LocalizeRef = native::Win_LocalizeRef_t(SELECT_VALUE(0x49D7E0, 0x5CBE90));
 
+		native::Key_KeynumToString = native::Key_KeynumToString_t(SELECT_VALUE(0x4BB000, 0x48C080));
+
 		native::_longjmp = reinterpret_cast<decltype(longjmp)*>(SELECT_VALUE(0x73AC20, 0x7363BC));
 
 		native::sv_cmd_args = reinterpret_cast<native::CmdArgs*>(SELECT_VALUE(0x1757218, 0x1CAA998));
@@ -903,5 +909,7 @@ namespace game
 		native::db_hashCritSect = reinterpret_cast<native::FastCriticalSection*>(SELECT_VALUE(0xFA9E7C, 0x18596E4));
 
 		native::g_assetNames = reinterpret_cast<const char**>(SELECT_VALUE(0x92A688, 0x8AAB30));
+
+		native::command_whitelist = reinterpret_cast<const char**>(SELECT_VALUE(0x929FA0, 0x8AA3B8));
 	}
 }

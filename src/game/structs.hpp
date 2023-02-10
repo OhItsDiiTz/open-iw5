@@ -1399,6 +1399,43 @@ namespace game
 
 		static_assert(sizeof(fileHandleData_t) == 0x11C);
 
+		struct field_t
+		{
+			int cursor;
+			int scroll;
+			int drawWidth;
+			int widthInPixels;
+			float charHeight;
+			int fixedSize;
+			char buffer[256];
+		};
+
+		enum LocSelInputState
+		{
+			LOC_SEL_INPUT_NONE = 0x0,
+			LOC_SEL_INPUT_CONFIRM = 0x1,
+			LOC_SEL_INPUT_CANCEL = 0x2,
+		};
+
+		struct KeyState
+		{
+			int down;
+			int repeats;
+			int binding;
+		};
+
+		struct PlayerKeyState
+		{
+			field_t chatField;
+			int chat_team;
+			int overstrikeMode;
+			int anyKeyDown;
+			KeyState keys[256];
+			LocSelInputState locSelInputState;
+		};
+
+		static_assert(sizeof(PlayerKeyState) == 0xD28);
+
 		namespace mp
 		{
 			enum ConfigString

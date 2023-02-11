@@ -147,7 +147,7 @@ namespace gsc
 
 		void g_scr_load_scripts_stub()
 		{
-cd			char path[game::native::MAX_OSPATH]{};
+			char path[game::native::MAX_OSPATH]{};
 
 			auto num_files = 0;
 			auto** files = file_system::list_files("scripts/", "gsc", game::native::FS_LIST_ALL, &num_files, 10);

@@ -5,6 +5,7 @@
 #include "script_loading.hpp"
 
 #include "module/console.hpp"
+#include "module/file_system.hpp"
 #include "module/scripting.hpp"
 
 #include <utils/hook.hpp>
@@ -30,10 +31,15 @@ namespace gsc
 
 		std::unordered_map<std::string, game::native::ScriptFile*> loaded_scripts;
 
+		std::unordered_map<std::string, int> main_handles;
+		std::unordered_map<std::string, int> init_handles;
+
 		void clear()
 		{
 			loaded_scripts.clear();
 			script_file_allocator.clear();
+			main_handles.clear();
+			init_handles.clear();
 		}
 
 		bool read_script_file(const std::string& name, std::string* data)
@@ -138,6 +144,68 @@ namespace gsc
 
 			return game::native::DB_IsXAssetDefault(type, name);
 		}
+
+		void g_scr_load_scripts_stub()
+		{
+cd			char path[game::native::MAX_OSPATH]{};
+
+			auto num_files = 0;
+			auto** files = file_system::list_files("scripts/", "gsc", game::native::FS_LIST_ALL, &num_files, 10);
+
+			for (auto i = 0; i < num_files; ++i)
+			{
+				const auto* script_file = files[i];
+				console::info("Loading script %s...\n", script_file);
+
+				sprintf_s(path, "%s/%s", "scripts", script_file);
+
+				// Scr_LoadScriptInternal will add the '.gsc' suffix so we remove it
+				path[std::strlen(path) - 4] = '\0';
+
+				if (!game::native::Scr_LoadScript(path))
+				{
+					console::error("Script %s encountered an error while loading\n", path);
+					continue;
+				}
+
+				console::info("Script %s.gsc loaded successfully\n", path);
+
+				const auto main_handle = game::native::Scr_GetFunctionHandle(path, xsk::gsc::iw5::resolver::token_id("main"));
+				if (main_handle)
+				{
+					console::info("Loaded '%s::main'\n", path);
+					main_handles[path] = main_handle;
+				}
+
+				const auto init_handle = game::native::Scr_GetFunctionHandle(path, xsk::gsc::iw5::resolver::token_id("init"));
+				if (init_handle)
+				{
+					console::info("Loaded '%s::init'\n", path);
+					init_handles[path] = init_handle;
+				}
+			}
+
+			utils::hook::invoke<void>(0x523DA0);
+		}
+
+		void scr_load_level_stub()
+		{
+			for (const auto& handle : main_handles)
+			{
+				console::info("Executing '%s::main'\n", handle.first.data());
+				const auto id = game::native::Scr_ExecThread(handle.second, 0);
+				game::native::Scr_FreeThread(static_cast<std::uint16_t>(id));
+			}
+
+			utils::hook::invoke<void>(0x517410); // Scr_LoadLevel
+
+			for (const auto& handle : init_handles)
+			{
+				console::info("Executing '%s::init'\n", handle.first.data());
+				const auto id = game::native::Scr_ExecThread(handle.second, 0);
+				game::native::Scr_FreeThread(static_cast<std::uint16_t>(id));
+			}			
+		}
 	}
 
 	game::native::ScriptFile* find_script(game::native::XAssetType type, const char* name, int allow_create_default)
@@ -163,6 +231,8 @@ namespace gsc
 	public:
 		void post_load() override
 		{
+			if (game::is_mp()) this->patch_mp();
+
 			// ProcessScript
 			utils::hook(SELECT_VALUE(0x44685E, 0x56B13E), find_script, HOOK_CALL).install()->quick();
 			utils::hook(SELECT_VALUE(0x446868, 0x56B148), db_is_x_asset_default, HOOK_CALL).install()->quick();
@@ -192,6 +262,13 @@ namespace gsc
 					clear();
 				}
 			});
+		}
+
+		static void patch_mp()
+		{
+			utils::hook(0x523F3E, g_scr_load_scripts_stub, HOOK_CALL).install()->quick();
+
+			utils::hook(0x50D4ED, scr_load_level_stub, HOOK_CALL).install()->quick();
 		}
 	};
 }

@@ -56,6 +56,10 @@ namespace game
 		Scr_GetString_t Scr_GetString;
 		Scr_CastString_t Scr_CastString;
 		Scr_ErrorInternal_t Scr_ErrorInternal;
+		Scr_LoadScript_t Scr_LoadScript;
+		Scr_GetFunctionHandle_t Scr_GetFunctionHandle;
+		Scr_ExecThread_t Scr_ExecThread;
+		Scr_FreeThread_t Scr_FreeThread;
 
 		GetObjectType_t GetObjectType;
 
@@ -776,6 +780,10 @@ namespace game
 		native::Scr_GetString = native::Scr_GetString_t(SELECT_VALUE(0x497530, 0x56A3D0));
 		native::Scr_CastString = native::Scr_CastString_t(SELECT_VALUE(0x447CE0, 0x566EE0));
 		native::Scr_ErrorInternal = native::Scr_ErrorInternal_t(SELECT_VALUE(0x42B910, 0x568FD0));
+		native::Scr_LoadScript = native::Scr_LoadScript_t(SELECT_VALUE(0x4D45D0, 0x561CC0));
+		native::Scr_GetFunctionHandle = native::Scr_GetFunctionHandle_t(SELECT_VALUE(0x51DD50, 0x5618A0));
+		native::Scr_ExecThread = native::Scr_ExecThread_t(SELECT_VALUE(0x4FC590, 0x56E240));
+		native::Scr_FreeThread = native::Scr_FreeThread_t(SELECT_VALUE(0x51FD90, 0x569E20));
 
 		native::GetObjectType = native::GetObjectType_t(SELECT_VALUE(0x4D8FE0, 0x565C60));
 

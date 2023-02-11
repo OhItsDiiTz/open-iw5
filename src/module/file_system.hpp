@@ -9,4 +9,6 @@ public:
 
 	static int open_file_by_mode(const char* qpath, int* f, game::native::fsMode_t mode);
 	static int write(const char* buffer, int len, int h);
+
+	static char** list_files(const char* path, const char* extension, game::native::FsListBehavior_e behavior, int* numfiles, int allocTrackType);
 };

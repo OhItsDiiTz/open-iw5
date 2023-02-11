@@ -122,6 +122,18 @@ namespace game
 		typedef void (*Scr_ErrorInternal_t)();
 		extern Scr_ErrorInternal_t Scr_ErrorInternal;
 
+		typedef unsigned int (*Scr_LoadScript_t)(const char* filename);
+		extern Scr_LoadScript_t Scr_LoadScript;
+
+		typedef int (*Scr_GetFunctionHandle_t)(const char* filename, unsigned short name);
+		extern Scr_GetFunctionHandle_t Scr_GetFunctionHandle;
+
+		typedef int (*Scr_ExecThread_t)(int handle, unsigned int paramcount);
+		extern Scr_ExecThread_t Scr_ExecThread;
+
+		typedef void (*Scr_FreeThread_t)(unsigned short handle);
+		extern Scr_FreeThread_t Scr_FreeThread;
+
 		typedef unsigned int(*GetObjectType_t)(unsigned int id);
 		extern GetObjectType_t GetObjectType;
 

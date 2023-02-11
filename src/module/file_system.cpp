@@ -346,11 +346,6 @@ namespace
 		return 1;
 	}
 
-	char** list_files(const char* path, const char* extension, game::native::FsListBehavior_e behavior, int* numfiles, int allocTrackType)
-	{
-		return game::native::FS_ListFilteredFiles(*game::native::fs_searchpaths, path, extension, nullptr, behavior, numfiles, allocTrackType);
-	}
-
 	void display_path(bool b_language_cull)
 	{
 		auto i_language = game::native::SEH_GetCurrentLanguage();
@@ -452,7 +447,7 @@ namespace
 		console::info("Directory of %s %s\n", path, extension);
 		console::info("---------------\n");
 
-		auto** dirnames = list_files(path, extension, game::native::FS_LIST_PURE_ONLY, &ndirs, 3);
+		auto** dirnames = file_system::list_files(path, extension, game::native::FS_LIST_PURE_ONLY, &ndirs, 3);
 
 		for (int i = 0; i < ndirs; ++i)
 		{
@@ -630,6 +625,11 @@ int file_system::write(const char* buffer, int len, int h)
 	}
 
 	return len;
+}
+
+char** file_system::list_files(const char* path, const char* extension, game::native::FsListBehavior_e behavior, int* numfiles, int allocTrackType)
+{
+	return game::native::FS_ListFilteredFiles(*game::native::fs_searchpaths, path, extension, nullptr, behavior, numfiles, allocTrackType);
 }
 
 void file_system::post_load()
